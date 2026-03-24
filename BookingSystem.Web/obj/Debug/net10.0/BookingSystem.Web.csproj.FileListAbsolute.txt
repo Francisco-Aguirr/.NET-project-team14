@@ -204,3 +204,4 @@ C:\Users\franu\Desktop\BYU\BYU-I\2026\block-2-2026\.Net-dev\project-team14\.NET-
 C:\Users\franu\Desktop\BYU\BYU-I\2026\block-2-2026\.Net-dev\project-team14\.NET-project-team14\BookingSystem.Web\obj\Debug\net10.0\BookingSystem.Web.genruntimeconfig.cache
 C:\Users\franu\Desktop\BYU\BYU-I\2026\block-2-2026\.Net-dev\project-team14\.NET-project-team14\BookingSystem.Web\obj\Debug\net10.0\ref\BookingSystem.Web.dll
 C:\Users\franu\Desktop\BYU\BYU-I\2026\block-2-2026\.Net-dev\project-team14\.NET-project-team14\BookingSystem.Web\bin\Debug\net10.0\Data\app.db
+C:\Users\franu\Desktop\BYU\BYU-I\2026\block-2-2026\.Net-dev\project-team14\.NET-project-team14\BookingSystem.Web\obj\Debug\net10.0\BookingSystem.Web.sourcelink.json
