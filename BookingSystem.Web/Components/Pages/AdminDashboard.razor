@@ -1,4 +1,5 @@
 @page "/admin"
+@rendermode InteractiveServer
 @attribute [Authorize(Roles = "SuperAdmin")]
 
 @using Microsoft.AspNetCore.Authorization
@@ -9,19 +10,19 @@
 @inject ApplicationDbContext DbContext
 @inject UserManager<ApplicationUser> UserManager
 
-<h3>Panel de SuperAdmin</h3>
+<h3>Admin Dashboard</h3>
 
 <hr />
 
-<h4>Solicitudes de emprendedores</h4>
+<h4>Applications from entrepreneurs</h4>
 
 @if (requests == null)
 {
-    <p><em>Cargando...</em></p>
+    <p><em>Loading...</em></p>
 }
 else if (!requests.Any())
 {
-    <p>No hay solicitudes pendientes.</p>
+    <p>There are no pending requests.</p>
 }
 else
 {
@@ -29,8 +30,8 @@ else
         <thead>
             <tr>
                 <th>Email</th>
-                <th>Fecha</th>
-                <th>Acciones</th>
+                <th>Date</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -40,8 +41,8 @@ else
                     <td>@req.UserEmail</td>
                     <td>@req.RequestedAt.ToLocalTime()</td>
                     <td>
-                        <button class="btn btn-success btn-sm" @onclick="() => Approve(req)">Aprobar</button>
-                        <button class="btn btn-danger btn-sm" @onclick="() => Reject(req)">Rechazar</button>
+                        <button class="btn btn-success btn-sm" @onclick="() => Approve(req)">Aprove</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => Reject(req)">Reject</button>
                     </td>
                 </tr>
             }
@@ -51,21 +52,21 @@ else
 
 <hr />
 
-<h4>Categorías de negocios</h4>
+<h4>Business Categories</h4>
 
 <input class="form-control mb-2" placeholder="Nueva categoría" @bind="newCategory" />
-<button class="btn btn-primary mb-3" @onclick="AddCategory">Agregar</button>
+<button class="btn btn-primary mb-3" @onclick="AddCategory">Add</button>
 
 @if (categories == null)
 {
-    <p><em>Cargando...</em></p>
+    <p><em>Loading...</em></p>
 }
 else
 {
     <table class="table">
         <thead>
             <tr>
-                <th>Nombre</th>
+                <th>Name</th>
                 <th></th>
             </tr>
         </thead>
@@ -75,7 +76,7 @@ else
                 <tr>
                     <td>@cat.Name</td>
                     <td>
-                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteCategory(cat.Id)">Eliminar</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteCategory(cat.Id)">Delete</button>
                     </td>
                 </tr>
             }

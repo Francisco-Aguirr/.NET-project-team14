@@ -1,9 +1,98 @@
 @page "/dashboard"
-@using Microsoft.AspNetCore.Authorization
+@rendermode InteractiveServer
 @attribute [Authorize(Roles = "User,Entrepreneur,SuperAdmin")]
 
-<h3>Panel de Usuario</h3>
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using BookingSystem.Web.Data
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
 
-<p>Aquí podrás ver tus citas y reservar nuevos servicios.</p>
+@inject ApplicationDbContext DbContext
+@inject UserManager<ApplicationUser> UserManager
 
-<!-- Luego agregaremos listado de citas y botón de nueva reserva -->
+<h3>User Dashboard</h3>
+
+<hr />
+
+@if (isEntrepreneur)
+{
+    <div class="alert alert-success">
+        You're already an entrepreneur 🎉
+    </div>
+}
+else if (hasPendingRequest)
+{
+    <div class="alert alert-warning">
+        Your application is currently under review ⏳
+    </div>
+}
+else
+{
+    <button class="btn btn-primary" @onclick="RequestEntrepreneur">
+        Becoming an entrepreneur
+    </button>
+}
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-info mt-3">@message</div>
+}
+
+@code {
+    private bool isEntrepreneur = false;
+    private bool hasPendingRequest = false;
+    private string message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var userPrincipal = authState.User;
+
+        var user = await UserManager.GetUserAsync(userPrincipal);
+
+        if (user != null)
+        {
+            // Verificar si ya es emprendedor
+            isEntrepreneur = await UserManager.IsInRoleAsync(user, "Entrepreneur");
+
+            // Verificar si ya tiene solicitud pendiente
+            hasPendingRequest = await DbContext.EntrepreneurRequests
+                .AnyAsync(r => r.UserId == user.Id && !r.IsApproved);
+        }
+    }
+
+    private async Task RequestEntrepreneur()
+    {
+        message = "CLICK detectado 👀";
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var userPrincipal = authState.User;
+
+        var user = await UserManager.GetUserAsync(userPrincipal);
+
+
+        if (user == null) return;
+
+        // Seguridad extra: evitar duplicados
+        var exists = await DbContext.EntrepreneurRequests
+            .AnyAsync(r => r.UserId == user.Id && !r.IsApproved);
+
+        if (exists)
+        {
+            message = "You already have a pending application.";
+            return;
+        }
+
+        var request = new EntrepreneurRequest
+        {
+            UserId = user.Id
+        };
+
+        DbContext.EntrepreneurRequests.Add(request);
+        await DbContext.SaveChangesAsync();
+
+        hasPendingRequest = true;
+        message = "Request sent successfully";
+    }
+}
