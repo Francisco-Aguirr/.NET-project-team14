@@ -1,8 +1,16 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace BookingSystem.Web.Data;
-
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
+namespace BookingSystem.Web.Data
 {
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+    {
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+            : base(options)
+        {
+        }
+
+        public DbSet<BusinessCategory> BusinessCategories => Set<BusinessCategory>();
+        public DbSet<EntrepreneurRequest> EntrepreneurRequests => Set<EntrepreneurRequest>();
+    }
 }

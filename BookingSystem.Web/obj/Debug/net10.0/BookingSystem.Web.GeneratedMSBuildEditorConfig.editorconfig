@@ -194,12 +194,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBcHAucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/franu/Desktop/BYU/BYU-I/2026/block-2-2026/.Net-dev/project-team14/.NET-project-team14/BookingSystem.Web/Components/Pages/AdminDashboard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBZG1pbkRhc2hib2FyZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/franu/Desktop/BYU/BYU-I/2026/block-2-2026/.Net-dev/project-team14/.NET-project-team14/BookingSystem.Web/Components/Pages/Auth.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xBdXRoLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/franu/Desktop/BYU/BYU-I/2026/block-2-2026/.Net-dev/project-team14/.NET-project-team14/BookingSystem.Web/Components/Pages/Counter.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDb3VudGVyLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/franu/Desktop/BYU/BYU-I/2026/block-2-2026/.Net-dev/project-team14/.NET-project-team14/BookingSystem.Web/Components/Pages/EntrepreneurDashboard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFbnRyZXByZW5ldXJEYXNoYm9hcmQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/franu/Desktop/BYU/BYU-I/2026/block-2-2026/.Net-dev/project-team14/.NET-project-team14/BookingSystem.Web/Components/Pages/Error.razor]
@@ -212,6 +220,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/franu/Desktop/BYU/BYU-I/2026/block-2-2026/.Net-dev/project-team14/.NET-project-team14/BookingSystem.Web/Components/Pages/NotFound.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xOb3RGb3VuZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/franu/Desktop/BYU/BYU-I/2026/block-2-2026/.Net-dev/project-team14/.NET-project-team14/BookingSystem.Web/Components/Pages/UserDashboard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xVc2VyRGFzaGJvYXJkLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/franu/Desktop/BYU/BYU-I/2026/block-2-2026/.Net-dev/project-team14/.NET-project-team14/BookingSystem.Web/Components/Pages/Weather.razor]

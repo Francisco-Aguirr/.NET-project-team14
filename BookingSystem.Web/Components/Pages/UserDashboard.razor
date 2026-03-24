@@ -1,0 +1,9 @@
+@page "/dashboard"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "User,Entrepreneur,SuperAdmin")]
+
+<h3>Panel de Usuario</h3>
+
+<p>Aquí podrás ver tus citas y reservar nuevos servicios.</p>
+
+<!-- Luego agregaremos listado de citas y botón de nueva reserva -->
