@@ -154,6 +154,14 @@
         var result = await UserManager.CreateAsync(user);
         if (result.Succeeded)
         {
+            // Assign 'User' role to new external login users
+            var roleResult = await UserManager.AddToRoleAsync(user, "User");
+            if (!roleResult.Succeeded)
+            {
+                message = $"Error: {string.Join(",", roleResult.Errors.Select(error => error.Description))}";
+                return;
+            }
+
             result = await UserManager.AddLoginAsync(user, externalLoginInfo);
             if (result.Succeeded)
             {
