@@ -1,6 +1,13 @@
 @page "/entrepreneur"
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using BookingSystem.Web.Data
 @attribute [Authorize(Roles = "Entrepreneur")]
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationDbContext DbContext
 
 <PageTitle>Entrepreneur Dashboard</PageTitle>
 
@@ -12,7 +19,45 @@
     <div class="card-body">
         <h5 class="card-title">Step 1. Business Profile</h5>
         <p class="card-text">Create and edit your business profile information.</p>
-        <button class="btn btn-primary" disabled>Create Profile (next step)</button>
+
+        @if (isLoading)
+        {
+            <p><em>Loading business profile...</em></p>
+        }
+        else
+        {
+            <EditForm Model="businessModel" OnValidSubmit="SaveBusiness">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="mb-2">
+                    <label>Business name</label>
+                    <InputText class="form-control" @bind-Value="businessModel.Name" />
+                </div>
+
+                <div class="mb-2">
+                    <label>Description</label>
+                    <InputTextArea class="form-control" @bind-Value="businessModel.Description" />
+                </div>
+
+                <div class="mb-2">
+                    <label>Phone</label>
+                    <InputText class="form-control" @bind-Value="businessModel.Phone" />
+                </div>
+
+                <div class="mb-3">
+                    <label>Address</label>
+                    <InputText class="form-control" @bind-Value="businessModel.Address" />
+                </div>
+
+                <button class="btn btn-primary" type="submit">@(hasBusiness ? "Update Profile" : "Create Profile")</button>
+            </EditForm>
+
+            @if (!string.IsNullOrWhiteSpace(statusMessage))
+            {
+                <div class="alert alert-info mt-3">@statusMessage</div>
+            }
+        }
     </div>
 </div>
 
@@ -40,3 +85,63 @@
     <li>CRUD for services</li>
     <li>Employee profile management</li>
 </ul>
+
+@code {
+    private Business businessModel = new();
+    private bool hasBusiness;
+    private bool isLoading = true;
+    private string? currentUserId;
+    private string statusMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = await UserManager.GetUserAsync(authState.User);
+
+        if (user == null)
+        {
+            statusMessage = "Unable to load authenticated user.";
+            isLoading = false;
+            return;
+        }
+
+        currentUserId = user.Id;
+
+        var existingBusiness = await DbContext.Businesses
+            .FirstOrDefaultAsync(b => b.UserId == currentUserId);
+
+        if (existingBusiness != null)
+        {
+            businessModel = existingBusiness;
+            hasBusiness = true;
+        }
+        else
+        {
+            businessModel = new Business { UserId = currentUserId };
+            hasBusiness = false;
+        }
+
+        isLoading = false;
+    }
+
+    private async Task SaveBusiness()
+    {
+        if (string.IsNullOrEmpty(currentUserId))
+        {
+            statusMessage = "User context is not available.";
+            return;
+        }
+
+        businessModel.UserId = currentUserId;
+        businessModel.UpdatedAt = DateTime.UtcNow;
+
+        if (!hasBusiness)
+        {
+            DbContext.Businesses.Add(businessModel);
+        }
+
+        await DbContext.SaveChangesAsync();
+        hasBusiness = true;
+        statusMessage = "Business profile saved successfully.";
+    }
+}
