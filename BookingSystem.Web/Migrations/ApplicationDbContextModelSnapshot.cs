@@ -92,6 +92,9 @@ namespace BookingSystem.Web.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("BusinessCategoryId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Description")
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
@@ -113,6 +116,8 @@ namespace BookingSystem.Web.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BusinessCategoryId");
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -214,29 +219,12 @@ namespace BookingSystem.Web.Migrations
                     b.ToTable("EntrepreneurRequests");
                 });
 
-<<<<<<< HEAD
-            modelBuilder.Entity("BookingSystem.Web.Data.Service", b =>
-=======
             modelBuilder.Entity("BookingSystem.Web.Data.WorkSchedule", b =>
->>>>>>> 842360a0c99cd394c22b1dd921d44dbfaf575487
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-<<<<<<< HEAD
-                    b.Property<int>("BusinessId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Price")
-=======
                     b.Property<int>("DayOfWeek")
                         .HasColumnType("INTEGER");
 
@@ -247,50 +235,13 @@ namespace BookingSystem.Web.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<TimeSpan>("StartTime")
->>>>>>> 842360a0c99cd394c22b1dd921d44dbfaf575487
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-<<<<<<< HEAD
-                    b.HasIndex("BusinessId");
-
-                    b.ToTable("Services");
-                });
-
-            modelBuilder.Entity("Business", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("BusinessCategoryId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BusinessCategoryId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Businesses");
-=======
                     b.HasIndex("EmployeeId");
 
                     b.ToTable("WorkSchedules");
->>>>>>> 842360a0c99cd394c22b1dd921d44dbfaf575487
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -442,26 +393,25 @@ namespace BookingSystem.Web.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-<<<<<<< HEAD
-            modelBuilder.Entity("BookingSystem.Web.Data.Service", b =>
-                {
-                    b.HasOne("Business", "Business")
-                        .WithMany()
-=======
             modelBuilder.Entity("BookingSystem.Web.Data.Business", b =>
                 {
+                    b.HasOne("BookingSystem.Web.Data.BusinessCategory", "BusinessCategory")
+                        .WithMany()
+                        .HasForeignKey("BusinessCategoryId");
+
                     b.HasOne("BookingSystem.Web.Data.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("BusinessCategory");
                 });
 
             modelBuilder.Entity("BookingSystem.Web.Data.BusinessService", b =>
                 {
                     b.HasOne("BookingSystem.Web.Data.Business", "Business")
                         .WithMany("Services")
->>>>>>> 842360a0c99cd394c22b1dd921d44dbfaf575487
                         .HasForeignKey("BusinessId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -469,25 +419,6 @@ namespace BookingSystem.Web.Migrations
                     b.Navigation("Business");
                 });
 
-<<<<<<< HEAD
-            modelBuilder.Entity("Business", b =>
-                {
-                    b.HasOne("BookingSystem.Web.Data.BusinessCategory", "BusinessCategory")
-                        .WithMany()
-                        .HasForeignKey("BusinessCategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BookingSystem.Web.Data.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("BusinessCategory");
-
-                    b.Navigation("User");
-=======
             modelBuilder.Entity("BookingSystem.Web.Data.Employee", b =>
                 {
                     b.HasOne("BookingSystem.Web.Data.Business", "Business")
@@ -507,7 +438,6 @@ namespace BookingSystem.Web.Migrations
                         .IsRequired();
 
                     b.Navigation("Employee");
->>>>>>> 842360a0c99cd394c22b1dd921d44dbfaf575487
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

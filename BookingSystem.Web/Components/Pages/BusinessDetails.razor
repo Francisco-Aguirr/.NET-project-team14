@@ -60,7 +60,7 @@ else
     public int DurationInMinutes { get; set; }
 
     private Business? business;
-    private List<Service> services = new();
+    private List<BusinessService> services = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -76,7 +76,7 @@ else
         }
 
        
-        services = await DbContext.Services
+        services = await DbContext.BusinessServices
             .Where(s => s.BusinessId == Id)
             .ToListAsync();
     }

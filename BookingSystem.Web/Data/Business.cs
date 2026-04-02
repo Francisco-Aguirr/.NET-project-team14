@@ -28,5 +28,7 @@ namespace BookingSystem.Web.Data
 
         public ICollection<BusinessService> Services { get; set; } = new List<BusinessService>();
         public ICollection<Employee> Employees { get; set; } = new List<Employee>();
+        public int? BusinessCategoryId { get; set; }
+        public BusinessCategory? BusinessCategory { get; set; }
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BookingSystem.Web.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateIdentitySchema : Migration
+    public partial class InitialIdentityAndApp : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -48,6 +48,34 @@ namespace BookingSystem.Web.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BusinessCategories",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Name = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BusinessCategories", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EntrepreneurRequests",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    UserId = table.Column<string>(type: "TEXT", nullable: false),
+                    IsApproved = table.Column<bool>(type: "INTEGER", nullable: false),
+                    RequestedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EntrepreneurRequests", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -175,6 +203,103 @@ namespace BookingSystem.Web.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Businesses",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    UserId = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 120, nullable: false),
+                    Description = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    Phone = table.Column<string>(type: "TEXT", maxLength: 30, nullable: true),
+                    Address = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    BusinessCategoryId = table.Column<int>(type: "INTEGER", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Businesses", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Businesses_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Businesses_BusinessCategories_BusinessCategoryId",
+                        column: x => x.BusinessCategoryId,
+                        principalTable: "BusinessCategories",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BusinessServices",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    BusinessId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 120, nullable: false),
+                    Description = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
+                    Price = table.Column<decimal>(type: "TEXT", nullable: false),
+                    DurationMinutes = table.Column<int>(type: "INTEGER", nullable: false),
+                    IsActive = table.Column<bool>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BusinessServices", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_BusinessServices_Businesses_BusinessId",
+                        column: x => x.BusinessId,
+                        principalTable: "Businesses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Employees",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    Phone = table.Column<string>(type: "TEXT", nullable: false),
+                    BusinessId = table.Column<int>(type: "INTEGER", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Employees", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Employees_Businesses_BusinessId",
+                        column: x => x.BusinessId,
+                        principalTable: "Businesses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "WorkSchedules",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    DayOfWeek = table.Column<int>(type: "INTEGER", nullable: false),
+                    StartTime = table.Column<TimeSpan>(type: "TEXT", nullable: false),
+                    EndTime = table.Column<TimeSpan>(type: "TEXT", nullable: false),
+                    EmployeeId = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WorkSchedules", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_WorkSchedules_Employees_EmployeeId",
+                        column: x => x.EmployeeId,
+                        principalTable: "Employees",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -216,6 +341,32 @@ namespace BookingSystem.Web.Migrations
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Businesses_BusinessCategoryId",
+                table: "Businesses",
+                column: "BusinessCategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Businesses_UserId",
+                table: "Businesses",
+                column: "UserId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BusinessServices_BusinessId",
+                table: "BusinessServices",
+                column: "BusinessId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Employees_BusinessId",
+                table: "Employees",
+                column: "BusinessId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkSchedules_EmployeeId",
+                table: "WorkSchedules",
+                column: "EmployeeId");
         }
 
         /// <inheritdoc />
@@ -240,10 +391,28 @@ namespace BookingSystem.Web.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "BusinessServices");
+
+            migrationBuilder.DropTable(
+                name: "EntrepreneurRequests");
+
+            migrationBuilder.DropTable(
+                name: "WorkSchedules");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
+                name: "Employees");
+
+            migrationBuilder.DropTable(
+                name: "Businesses");
+
+            migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "BusinessCategories");
         }
     }
 }

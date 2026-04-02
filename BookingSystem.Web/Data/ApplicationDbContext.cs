@@ -14,16 +14,13 @@ namespace BookingSystem.Web.Data
         public DbSet<Business> Businesses => Set<Business>();
         public DbSet<BusinessService> BusinessServices => Set<BusinessService>();
         public DbSet<EntrepreneurRequest> EntrepreneurRequests => Set<EntrepreneurRequest>();
-<<<<<<< HEAD
-        public DbSet<Business> Businesses { get; set; }
-        public DbSet<Service> Services { get; set; }
-=======
         public DbSet<Employee> Employees => Set<Employee>();
         public DbSet<WorkSchedule> WorkSchedules => Set<WorkSchedule>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<Employee>()
                 .HasMany(e => e.WorkSchedules)
                 .WithOne(ws => ws.Employee)
@@ -58,6 +55,5 @@ namespace BookingSystem.Web.Data
             modelBuilder.Entity<BusinessService>()
                 .HasIndex(s => s.BusinessId);
         }
->>>>>>> 842360a0c99cd394c22b1dd921d44dbfaf575487
     }
 }
