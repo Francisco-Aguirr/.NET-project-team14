@@ -119,6 +119,7 @@
                             <th>Price</th>
                             <th>Duration</th>
                             <th>Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -129,10 +130,54 @@
                                 <td>@service.Price.ToString("C")</td>
                                 <td>@service.DurationMinutes min</td>
                                 <td>@(service.IsActive ? "Active" : "Inactive")</td>
+                                <td>
+                                    <button class="btn btn-sm btn-info me-2" type="button" @onclick="() => StartEditService(service)">Edit</button>
+                                    <button class="btn btn-sm btn-danger" type="button" @onclick="() => DeleteService(service.Id)">Delete</button>
+                                </td>
                             </tr>
                         }
                     </tbody>
                 </table>
+
+                @if (isEditingService)
+                {
+                    <div class="border rounded p-3 mt-3">
+                        <h6>Edit Service</h6>
+
+                        <EditForm Model="editServiceModel" OnValidSubmit="UpdateService" FormName="service-edit-form">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+
+                            <div class="mb-2">
+                                <label>Service name</label>
+                                <InputText class="form-control" @bind-Value="editServiceModel.Name" />
+                            </div>
+
+                            <div class="mb-2">
+                                <label>Description</label>
+                                <InputTextArea class="form-control" @bind-Value="editServiceModel.Description" />
+                            </div>
+
+                            <div class="mb-2">
+                                <label>Price</label>
+                                <InputNumber class="form-control" @bind-Value="editServiceModel.Price" />
+                            </div>
+
+                            <div class="mb-2">
+                                <label>Duration (minutes)</label>
+                                <InputNumber class="form-control" @bind-Value="editServiceModel.DurationMinutes" />
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <InputCheckbox class="form-check-input" @bind-Value="editServiceModel.IsActive" />
+                                <label class="form-check-label">Active</label>
+                            </div>
+
+                            <button class="btn btn-primary me-2" type="submit">Update Service</button>
+                            <button class="btn btn-secondary" type="button" @onclick="CancelEditService">Cancel</button>
+                        </EditForm>
+                    </div>
+                }
             }
 
             @if (!string.IsNullOrWhiteSpace(serviceStatusMessage))
@@ -163,10 +208,13 @@
 @code {
     private Business businessModel = new();
     private BusinessService serviceModel = new();
+    private BusinessService editServiceModel = new();
     private List<BusinessService> services = new();
     private bool hasBusiness;
     private bool isLoading = true;
     private bool isCreatingService;
+    private bool isEditingService;
+    private int? editingServiceId;
     private string? currentUserId;
     private int? currentBusinessId;
     private string statusMessage = string.Empty;
@@ -258,6 +306,8 @@
             DurationMinutes = 30,
             IsActive = true
         };
+        isEditingService = false;
+        editingServiceId = null;
         serviceStatusMessage = string.Empty;
         isCreatingService = true;
     }
@@ -265,6 +315,38 @@
     private void CancelCreateService()
     {
         isCreatingService = false;
+        serviceStatusMessage = string.Empty;
+    }
+
+    private void StartEditService(BusinessService service)
+    {
+        if (currentBusinessId is null || service.BusinessId != currentBusinessId.Value)
+        {
+            serviceStatusMessage = "You cannot edit this service.";
+            return;
+        }
+
+        editServiceModel = new BusinessService
+        {
+            Id = service.Id,
+            BusinessId = service.BusinessId,
+            Name = service.Name,
+            Description = service.Description,
+            Price = service.Price,
+            DurationMinutes = service.DurationMinutes,
+            IsActive = service.IsActive
+        };
+
+        editingServiceId = service.Id;
+        isEditingService = true;
+        isCreatingService = false;
+        serviceStatusMessage = string.Empty;
+    }
+
+    private void CancelEditService()
+    {
+        isEditingService = false;
+        editingServiceId = null;
         serviceStatusMessage = string.Empty;
     }
 
@@ -289,6 +371,81 @@
         catch (Exception ex)
         {
             serviceStatusMessage = $"Could not save service: {ex.Message}";
+        }
+    }
+
+    private async Task UpdateService()
+    {
+        if (currentBusinessId is null)
+        {
+            serviceStatusMessage = "Create your business profile before updating services.";
+            return;
+        }
+
+        try
+        {
+            var existingService = await DbContext.BusinessServices
+                .FirstOrDefaultAsync(s => s.Id == editServiceModel.Id && s.BusinessId == currentBusinessId.Value);
+
+            if (existingService is null)
+            {
+                serviceStatusMessage = "Service not found.";
+                return;
+            }
+
+            existingService.Name = editServiceModel.Name;
+            existingService.Description = editServiceModel.Description;
+            existingService.Price = editServiceModel.Price;
+            existingService.DurationMinutes = editServiceModel.DurationMinutes;
+            existingService.IsActive = editServiceModel.IsActive;
+
+            await DbContext.SaveChangesAsync();
+            await LoadServices();
+
+            isEditingService = false;
+            editingServiceId = null;
+            serviceStatusMessage = "Service updated successfully.";
+        }
+        catch (Exception ex)
+        {
+            serviceStatusMessage = $"Could not update service: {ex.Message}";
+        }
+    }
+
+    private async Task DeleteService(int serviceId)
+    {
+        if (currentBusinessId is null)
+        {
+            serviceStatusMessage = "Create your business profile before deleting services.";
+            return;
+        }
+
+        try
+        {
+            var existingService = await DbContext.BusinessServices
+                .FirstOrDefaultAsync(s => s.Id == serviceId && s.BusinessId == currentBusinessId.Value);
+
+            if (existingService is null)
+            {
+                serviceStatusMessage = "Service not found.";
+                return;
+            }
+
+            DbContext.BusinessServices.Remove(existingService);
+            await DbContext.SaveChangesAsync();
+            await LoadServices();
+
+            if (editingServiceId == serviceId)
+            {
+                isEditingService = false;
+                editingServiceId = null;
+            }
+
+            serviceStatusMessage = "Service deleted successfully.";
+        }
+        catch (Exception ex)
+        {
+            serviceStatusMessage = $"Could not delete service: {ex.Message}";
         }
     }
 }
