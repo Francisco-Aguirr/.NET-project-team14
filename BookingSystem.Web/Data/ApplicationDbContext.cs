@@ -12,6 +12,7 @@ namespace BookingSystem.Web.Data
 
         public DbSet<BusinessCategory> BusinessCategories => Set<BusinessCategory>();
         public DbSet<Business> Businesses => Set<Business>();
+        public DbSet<BusinessService> BusinessServices => Set<BusinessService>();
         public DbSet<EntrepreneurRequest> EntrepreneurRequests => Set<EntrepreneurRequest>();
         public DbSet<Employee> Employees => Set<Employee>();
         public DbSet<WorkSchedule> WorkSchedules => Set<WorkSchedule>();
@@ -34,6 +35,15 @@ namespace BookingSystem.Web.Data
             modelBuilder.Entity<Business>()
                 .HasIndex(b => b.UserId)
                 .IsUnique();
+
+            modelBuilder.Entity<BusinessService>()
+                .HasOne(s => s.Business)
+                .WithMany(b => b.Services)
+                .HasForeignKey(s => s.BusinessId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<BusinessService>()
+                .HasIndex(s => s.BusinessId);
         }
     }
 }

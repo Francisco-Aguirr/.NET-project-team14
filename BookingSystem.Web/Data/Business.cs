@@ -25,5 +25,7 @@ namespace BookingSystem.Web.Data
         public string? Address { get; set; }
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        public ICollection<BusinessService> Services { get; set; } = new List<BusinessService>();
     }
 }
