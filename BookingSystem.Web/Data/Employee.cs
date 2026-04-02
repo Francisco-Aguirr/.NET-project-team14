@@ -14,6 +14,9 @@ namespace BookingSystem.Web.Data
         [Required]
         public string Phone { get; set; } = string.Empty;
 
+        public int? BusinessId { get; set; }
+        public Business? Business { get; set; }
+
         public ICollection<WorkSchedule> WorkSchedules { get; set; } = new List<WorkSchedule>();
     }
 }

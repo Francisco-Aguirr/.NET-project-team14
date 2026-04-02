@@ -27,5 +27,6 @@ namespace BookingSystem.Web.Data
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public ICollection<BusinessService> Services { get; set; } = new List<BusinessService>();
+        public ICollection<Employee> Employees { get; set; } = new List<Employee>();
     }
 }

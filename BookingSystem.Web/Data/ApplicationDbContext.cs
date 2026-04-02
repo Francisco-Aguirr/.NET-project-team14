@@ -26,6 +26,15 @@ namespace BookingSystem.Web.Data
                 .HasForeignKey(ws => ws.EmployeeId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Employee>()
+                .HasOne(e => e.Business)
+                .WithMany(b => b.Employees)
+                .HasForeignKey(e => e.BusinessId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Employee>()
+                .HasIndex(e => e.BusinessId);
+
             modelBuilder.Entity<Business>()
                 .HasOne<ApplicationUser>()
                 .WithMany()
