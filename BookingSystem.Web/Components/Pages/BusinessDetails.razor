@@ -1,0 +1,83 @@
+@page "/business/{Id:int}"
+@rendermode InteractiveServer
+
+@using Microsoft.EntityFrameworkCore
+@using BookingSystem.Web.Data
+
+@inject ApplicationDbContext DbContext
+@inject NavigationManager Nav
+
+<PageTitle>Business Details</PageTitle>
+
+@if (business == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2>@business.Name</h2>
+
+            <p>@business.Description</p>
+
+            <p>
+                <strong>Category:</strong>
+                @business.BusinessCategory?.Name
+            </p>
+
+            <hr />
+
+            <h4>Services</h4>
+
+            @if (services == null)
+            {
+                <p>Loading services...</p>
+            }
+            else if (!services.Any())
+            {
+                <p>This business does not have any services yet.</p>
+            }
+            else
+            {
+                <ul class="list-group">
+                    @foreach (var service in services)
+                    {
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>@service.Name</span>
+                            <span>@service.Price €</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    public int DurationInMinutes { get; set; }
+
+    private Business? business;
+    private List<Service> services = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Obtener negocio
+        business = await DbContext.Businesses
+            .Include(b => b.BusinessCategory)
+            .FirstOrDefaultAsync(b => b.Id == Id);
+
+        if (business == null)
+        {
+            Nav.NavigateTo("/");
+            return;
+        }
+
+       
+        services = await DbContext.Services
+            .Where(s => s.BusinessId == Id)
+            .ToListAsync();
+    }
+}

@@ -12,5 +12,7 @@ namespace BookingSystem.Web.Data
 
         public DbSet<BusinessCategory> BusinessCategories => Set<BusinessCategory>();
         public DbSet<EntrepreneurRequest> EntrepreneurRequests => Set<EntrepreneurRequest>();
+        public DbSet<Business> Businesses { get; set; }
+        public DbSet<Service> Services { get; set; }
     }
 }

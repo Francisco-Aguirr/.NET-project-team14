@@ -1,9 +1,110 @@
-@page "/entrepreneur"
-@using Microsoft.AspNetCore.Authorization
+@page "/my-business"
+@rendermode InteractiveServer
 @attribute [Authorize(Roles = "Entrepreneur")]
 
-<h3>Panel de Emprendedor</h3>
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using BookingSystem.Web.Data
+@using Microsoft.AspNetCore.Authorization
 
-<p>Gestiona tu perfil y servicios disponibles.</p>
+@inject ApplicationDbContext DbContext
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
 
-<!-- Aquí luego agregaremos lista de servicios, CRUD, y calendario de disponibilidad -->
+<h3>My Business</h3>
+
+<hr />
+
+@if (business == null)
+{
+    <h5>Create Business</h5>
+
+    <input placeholder="Name"
+           @bind="newBusiness.Name"
+           class="form-control mb-2" />
+
+    <input placeholder="Description"
+           @bind="newBusiness.Description"
+           class="form-control mb-2" />
+
+    <select class="form-control mb-2"
+            @bind="newBusiness.BusinessCategoryId">
+        <option value="0">Select Category</option>
+
+        @foreach (var cat in categories)
+        {
+            <option value="@cat.Id">@cat.Name</option>
+        }
+    </select>
+
+    <button class="btn btn-success" @onclick="CreateBusiness">
+        Create Business
+    </button>
+}
+else
+{
+    <h5>@business.Name</h5>
+    <p>@business.Description</p>
+    <p><strong>Category:</strong> @business.BusinessCategory?.Name</p>
+}
+
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert alert-info mt-3">@message</div>
+}
+
+@code {
+    private Business? business;
+    private Business newBusiness = new();
+    private List<BusinessCategory> categories = new();
+    private string message = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = await UserManager.GetUserAsync(authState.User);
+
+        if (user == null) return;
+
+        // Buscar si ya tiene negocio
+        business = await DbContext.Businesses
+            .Include(b => b.BusinessCategory)
+            .FirstOrDefaultAsync(b => b.UserId == user.Id);
+
+        // Cargar categorías
+        categories = await DbContext.BusinessCategories.ToListAsync();
+    }
+
+    private async Task CreateBusiness()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = await UserManager.GetUserAsync(authState.User);
+
+        if (user == null)
+        {
+            message = "Error: user not found";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(newBusiness.Name))
+        {
+            message = "The name is required";
+            return;
+        }
+
+        if (newBusiness.BusinessCategoryId == 0)
+        {
+            message = "Please select a category";
+            return;
+        }
+
+        newBusiness.UserId = user.Id;
+
+        DbContext.Businesses.Add(newBusiness);
+        await DbContext.SaveChangesAsync();
+
+        business = newBusiness;
+        message = "Business created successfully";
+    }
+}
