@@ -1,23 +1,38 @@
-@page "/admin/employees"
+@page "/entrepreneur/employees"
+@rendermode InteractiveServer
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
 @using BookingSystem.Web.Data
 @inject ApplicationDbContext DbContext
-@attribute [Authorize(Roles = "SuperAdmin")]
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@attribute [Authorize(Roles = "Entrepreneur")]
 
+<PageTitle>My Employees</PageTitle>
+<h3>My Employees</h3>
 
-<AuthorizeView Roles="SuperAdmin">
-    <Authorized Context="auth">
-        <PageTitle>Employees</PageTitle>
-        <h3>Employees</h3>
+@if (!string.IsNullOrWhiteSpace(pageMessage))
+{
+    <div class="alert alert-warning">@pageMessage</div>
+}
 
-        @if (employees == null)
+@if (employees == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <button class="btn btn-primary mb-3" @onclick="ShowAddEmployee" disabled="@(currentBusinessId is null)">Add
+        Employee</button>
+
+        @if (employees.Count == 0)
         {
-            <p><em>Loading...</em></p>
+            <p><em>No employees yet.</em></p>
         }
         else
         {
-            <button class="btn btn-primary mb-3" @onclick="ShowAddEmployee">Add Employee</button>
             <table class="table">
                 <thead>
                     <tr>
@@ -35,97 +50,92 @@
                             <td>
                                 <button class="btn btn-sm btn-info me-2" @onclick="() => EditEmployee(emp)">Edit</button>
                                 <button class="btn btn-sm btn-danger" @onclick="() => DeleteEmployee(emp.Id)">Delete</button>
-                                <button class="btn btn-sm btn-secondary ms-2"
-                                        @onclick="() => ShowSchedules(emp)">Schedules</button>
+                                <button class="btn btn-sm btn-secondary ms-2" @onclick="() => ShowSchedules(emp)">Schedules</button>
                             </td>
                         </tr>
                     }
                 </tbody>
             </table>
         }
+    }
 
-        @if (showEmployeeForm)
+    @if (showEmployeeForm)
+    {
+        <EditForm Model="employeeModel" OnValidSubmit="SaveEmployee" FormName="entrepreneur-employee-form">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+            <div class="mb-2">
+                <label>Name:</label>
+                <InputText class="form-control" @bind-Value="employeeModel.Name" />
+            </div>
+            <div class="mb-2">
+                <label>Phone:</label>
+                <InputText class="form-control" @bind-Value="employeeModel.Phone" />
+            </div>
+            <button class="btn btn-success me-2" type="submit">Save</button>
+            <button class="btn btn-secondary" type="button" @onclick="CancelEmployee">Cancel</button>
+        </EditForm>
+    }
+
+    @if (showSchedules && selectedEmployee != null)
+    {
+        <h4>Schedules for @selectedEmployee.Name</h4>
+        @if (!string.IsNullOrWhiteSpace(scheduleValidationError))
         {
-            <EditForm Model="employeeModel" OnValidSubmit="SaveEmployee">
+            <div class="alert alert-warning">@scheduleValidationError</div>
+        }
+        <button class="btn btn-sm btn-primary mb-2" @onclick="ShowAddSchedule">Add Schedule</button>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var sched in schedules)
+                {
+                    <tr>
+                        <td>@sched.DayOfWeek</td>
+                        <td>@sched.StartTime</td>
+                        <td>@sched.EndTime</td>
+                        <td>
+                            <button class="btn btn-sm btn-danger" @onclick="() => DeleteSchedule(sched.Id)">Delete</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @if (showScheduleForm)
+        {
+            <EditForm Model="scheduleModel" OnValidSubmit="SaveSchedule" FormName="entrepreneur-schedule-form">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
                 <div class="mb-2">
-                    <label>Name:</label>
-                    <InputText class="form-control" @bind-Value="employeeModel.Name" />
+                    <label>Day of Week:</label>
+                    <InputSelect class="form-control" @bind-Value="scheduleModel.DayOfWeek">
+                        @foreach (var day in Enum.GetValues<DayOfWeek>())
+                        {
+                            <option value="@day">@day</option>
+                        }
+                    </InputSelect>
                 </div>
                 <div class="mb-2">
-                    <label>Phone:</label>
-                    <InputText class="form-control" @bind-Value="employeeModel.Phone" />
+                    <label>Start Time:</label>
+                    <InputText class="form-control" type="time" @bind-value="startTimeString" />
+                </div>
+                <div class="mb-2">
+                    <label>End Time:</label>
+                    <InputText class="form-control" type="time" @bind-value="endTimeString" />
                 </div>
                 <button class="btn btn-success me-2" type="submit">Save</button>
-                <button class="btn btn-secondary" type="button" @onclick="CancelEmployee">Cancel</button>
+                <button class="btn btn-secondary" type="button" @onclick="CancelSchedule">Cancel</button>
             </EditForm>
         }
-
-        @if (showSchedules && selectedEmployee != null)
-        {
-            <h4>Schedules for @selectedEmployee.Name</h4>
-            @if (!string.IsNullOrWhiteSpace(scheduleValidationError))
-            {
-                <div class="alert alert-warning">@scheduleValidationError</div>
-            }
-            <button class="btn btn-sm btn-primary mb-2" @onclick="ShowAddSchedule">Add Schedule</button>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Day</th>
-                        <th>Start</th>
-                        <th>End</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var sched in schedules)
-                    {
-                        <tr>
-                            <td>@sched.DayOfWeek</td>
-                            <td>@sched.StartTime</td>
-                            <td>@sched.EndTime</td>
-                            <td>
-                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteSchedule(sched.Id)">Delete</button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-            @if (showScheduleForm)
-            {
-                <EditForm Model="scheduleModel" OnValidSubmit="SaveSchedule">
-                    <DataAnnotationsValidator />
-                    <ValidationSummary />
-                    <div class="mb-2">
-                        <label>Day of Week:</label>
-                        <InputSelect class="form-control" @bind-Value="scheduleModel.DayOfWeek">
-                            @foreach (var day in Enum.GetValues<DayOfWeek>())
-                            {
-                                <option value="@day">@day</option>
-                            }
-                        </InputSelect>
-                    </div>
-                    <div class="mb-2">
-                        <label>Start Time:</label>
-                        <InputText class="form-control" type="time" @bind-value="startTimeString" />
-                    </div>
-                    <div class="mb-2">
-                        <label>End Time:</label>
-                        <InputText class="form-control" type="time" @bind-value="endTimeString" />
-                    </div>
-                    <button class="btn btn-success me-2" type="submit">Save</button>
-                    <button class="btn btn-secondary" type="button" @onclick="CancelSchedule">Cancel</button>
-                </EditForm>
-            }
-            <button class="btn btn-secondary mt-2" @onclick="CloseSchedules">Close</button>
-        }
-    </Authorized>
-    <NotAuthorized>
-        <div class="alert alert-danger mt-4">No tienes permisos para ver esta página.</div>
-    </NotAuthorized>
-</AuthorizeView>
+        <button class="btn btn-secondary mt-2" @onclick="CloseSchedules">Close</button>
+    }
 
 @code {
     private List<Employee>? employees;
@@ -142,37 +152,86 @@
     private Employee? selectedEmployee;
     private string? scheduleValidationError;
 
+    private string? currentUserId;
+    private int? currentBusinessId;
+    private string pageMessage = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = await UserManager.GetUserAsync(authState.User);
+
+        if (user == null)
+        {
+            pageMessage = "Unable to identify authenticated entrepreneur.";
+            employees = new List<Employee>();
+            return;
+        }
+
+        currentUserId = user.Id;
+        var business = await DbContext.Businesses.FirstOrDefaultAsync(b => b.UserId == currentUserId);
+
+        if (business == null)
+        {
+            pageMessage = "Create your business profile first before managing employees.";
+            employees = new List<Employee>();
+            return;
+        }
+
+        currentBusinessId = business.Id;
         await LoadEmployees();
     }
 
     private async Task LoadEmployees()
     {
+        if (currentBusinessId is null)
+        {
+            employees = new List<Employee>();
+            return;
+        }
+
         employees = await DbContext.Employees
+            .Where(e => e.BusinessId == currentBusinessId.Value)
             .OrderBy(e => e.Name)
             .ToListAsync();
     }
 
     private void ShowAddEmployee()
     {
-        employeeModel = new Employee();
+        employeeModel = new Employee
+        {
+            BusinessId = currentBusinessId
+        };
         showEmployeeForm = true;
         isEdit = false;
     }
 
     private void EditEmployee(Employee emp)
     {
-        employeeModel = new Employee { Id = emp.Id, Name = emp.Name, Phone = emp.Phone };
+        employeeModel = new Employee
+        {
+            Id = emp.Id,
+            Name = emp.Name,
+            Phone = emp.Phone,
+            BusinessId = emp.BusinessId
+        };
         showEmployeeForm = true;
         isEdit = true;
     }
 
     private async Task SaveEmployee()
     {
+        if (currentBusinessId is null)
+        {
+            pageMessage = "Business context not found.";
+            return;
+        }
+
         if (isEdit)
         {
-            var emp = await DbContext.Employees.FindAsync(employeeModel.Id);
+            var emp = await DbContext.Employees
+                .FirstOrDefaultAsync(e => e.Id == employeeModel.Id && e.BusinessId == currentBusinessId.Value);
+
             if (emp != null)
             {
                 emp.Name = employeeModel.Name;
@@ -181,8 +240,10 @@
         }
         else
         {
+            employeeModel.BusinessId = currentBusinessId.Value;
             DbContext.Employees.Add(employeeModel);
         }
+
         await DbContext.SaveChangesAsync();
         showEmployeeForm = false;
         await LoadEmployees();
@@ -195,7 +256,14 @@
 
     private async Task DeleteEmployee(int id)
     {
-        var emp = await DbContext.Employees.FindAsync(id);
+        if (currentBusinessId is null)
+        {
+            return;
+        }
+
+        var emp = await DbContext.Employees
+            .FirstOrDefaultAsync(e => e.Id == id && e.BusinessId == currentBusinessId.Value);
+
         if (emp != null)
         {
             DbContext.Employees.Remove(emp);
@@ -206,8 +274,15 @@
 
     private async Task ShowSchedules(Employee emp)
     {
+        if (currentBusinessId is null || emp.BusinessId != currentBusinessId.Value)
+        {
+            return;
+        }
+
         selectedEmployee = emp;
-        schedules = await DbContext.WorkSchedules.Where(ws => ws.EmployeeId == emp.Id).ToListAsync<WorkSchedule>();
+        schedules = await DbContext.WorkSchedules
+            .Where(ws => ws.EmployeeId == emp.Id)
+            .ToListAsync();
         showSchedules = true;
         showScheduleForm = false;
         scheduleValidationError = null;
@@ -238,8 +313,9 @@
             await DbContext.SaveChangesAsync();
             showScheduleForm = false;
             scheduleValidationError = null;
-            schedules = await DbContext.WorkSchedules.Where(ws => ws.EmployeeId ==
-selectedEmployee!.Id).ToListAsync<WorkSchedule>();
+            schedules = await DbContext.WorkSchedules
+                .Where(ws => ws.EmployeeId == selectedEmployee!.Id)
+                .ToListAsync();
         }
         else
         {
@@ -256,12 +332,13 @@ selectedEmployee!.Id).ToListAsync<WorkSchedule>();
     private async Task DeleteSchedule(int id)
     {
         var sched = await DbContext.WorkSchedules.FindAsync(id);
-        if (sched != null)
+        if (sched != null && selectedEmployee != null && sched.EmployeeId == selectedEmployee.Id)
         {
             DbContext.WorkSchedules.Remove(sched);
             await DbContext.SaveChangesAsync();
-            schedules = await DbContext.WorkSchedules.Where(ws => ws.EmployeeId ==
-selectedEmployee!.Id).ToListAsync<WorkSchedule>();
+            schedules = await DbContext.WorkSchedules
+                .Where(ws => ws.EmployeeId == selectedEmployee.Id)
+                .ToListAsync();
         }
     }
 

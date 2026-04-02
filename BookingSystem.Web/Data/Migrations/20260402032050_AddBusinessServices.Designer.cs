@@ -3,6 +3,7 @@ using System;
 using BookingSystem.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookingSystem.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260402032050_AddBusinessServices")]
+    partial class AddBusinessServices
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.3");
@@ -175,9 +178,6 @@ namespace BookingSystem.Web.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("BusinessId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -187,8 +187,6 @@ namespace BookingSystem.Web.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("BusinessId");
 
                     b.ToTable("Employees");
                 });
@@ -408,16 +406,6 @@ namespace BookingSystem.Web.Migrations
                     b.Navigation("Business");
                 });
 
-            modelBuilder.Entity("BookingSystem.Web.Data.Employee", b =>
-                {
-                    b.HasOne("BookingSystem.Web.Data.Business", "Business")
-                        .WithMany("Employees")
-                        .HasForeignKey("BusinessId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Business");
-                });
-
             modelBuilder.Entity("BookingSystem.Web.Data.WorkSchedule", b =>
                 {
                     b.HasOne("BookingSystem.Web.Data.Employee", "Employee")
@@ -533,8 +521,6 @@ namespace BookingSystem.Web.Migrations
 
             modelBuilder.Entity("BookingSystem.Web.Data.Business", b =>
                 {
-                    b.Navigation("Employees");
-
                     b.Navigation("Services");
                 });
 
