@@ -3,6 +3,7 @@ using System;
 using BookingSystem.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookingSystem.Web.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260325202827_AddEmployeeAndWorkSchedule")]
+    partial class AddEmployeeAndWorkSchedule
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.3");
@@ -82,44 +85,6 @@ namespace BookingSystem.Web.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("BookingSystem.Web.Data.Business", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Address")
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Phone")
-                        .HasMaxLength(30)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("Businesses");
-                });
-
             modelBuilder.Entity("BookingSystem.Web.Data.BusinessCategory", b =>
                 {
                     b.Property<int>("Id")
@@ -135,47 +100,10 @@ namespace BookingSystem.Web.Migrations
                     b.ToTable("BusinessCategories");
                 });
 
-            modelBuilder.Entity("BookingSystem.Web.Data.BusinessService", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("BusinessId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("DurationMinutes")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BusinessId");
-
-                    b.ToTable("BusinessServices");
-                });
-
             modelBuilder.Entity("BookingSystem.Web.Data.Employee", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("BusinessId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Name")
@@ -187,8 +115,6 @@ namespace BookingSystem.Web.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("BusinessId");
 
                     b.ToTable("Employees");
                 });
@@ -214,29 +140,12 @@ namespace BookingSystem.Web.Migrations
                     b.ToTable("EntrepreneurRequests");
                 });
 
-<<<<<<< HEAD
-            modelBuilder.Entity("BookingSystem.Web.Data.Service", b =>
-=======
             modelBuilder.Entity("BookingSystem.Web.Data.WorkSchedule", b =>
->>>>>>> 842360a0c99cd394c22b1dd921d44dbfaf575487
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-<<<<<<< HEAD
-                    b.Property<int>("BusinessId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("Price")
-=======
                     b.Property<int>("DayOfWeek")
                         .HasColumnType("INTEGER");
 
@@ -247,50 +156,13 @@ namespace BookingSystem.Web.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<TimeSpan>("StartTime")
->>>>>>> 842360a0c99cd394c22b1dd921d44dbfaf575487
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-<<<<<<< HEAD
-                    b.HasIndex("BusinessId");
-
-                    b.ToTable("Services");
-                });
-
-            modelBuilder.Entity("Business", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("BusinessCategoryId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BusinessCategoryId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Businesses");
-=======
                     b.HasIndex("EmployeeId");
 
                     b.ToTable("WorkSchedules");
->>>>>>> 842360a0c99cd394c22b1dd921d44dbfaf575487
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -442,62 +314,6 @@ namespace BookingSystem.Web.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-<<<<<<< HEAD
-            modelBuilder.Entity("BookingSystem.Web.Data.Service", b =>
-                {
-                    b.HasOne("Business", "Business")
-                        .WithMany()
-=======
-            modelBuilder.Entity("BookingSystem.Web.Data.Business", b =>
-                {
-                    b.HasOne("BookingSystem.Web.Data.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("BookingSystem.Web.Data.BusinessService", b =>
-                {
-                    b.HasOne("BookingSystem.Web.Data.Business", "Business")
-                        .WithMany("Services")
->>>>>>> 842360a0c99cd394c22b1dd921d44dbfaf575487
-                        .HasForeignKey("BusinessId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Business");
-                });
-
-<<<<<<< HEAD
-            modelBuilder.Entity("Business", b =>
-                {
-                    b.HasOne("BookingSystem.Web.Data.BusinessCategory", "BusinessCategory")
-                        .WithMany()
-                        .HasForeignKey("BusinessCategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BookingSystem.Web.Data.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("BusinessCategory");
-
-                    b.Navigation("User");
-=======
-            modelBuilder.Entity("BookingSystem.Web.Data.Employee", b =>
-                {
-                    b.HasOne("BookingSystem.Web.Data.Business", "Business")
-                        .WithMany("Employees")
-                        .HasForeignKey("BusinessId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Business");
-                });
-
             modelBuilder.Entity("BookingSystem.Web.Data.WorkSchedule", b =>
                 {
                     b.HasOne("BookingSystem.Web.Data.Employee", "Employee")
@@ -507,7 +323,6 @@ namespace BookingSystem.Web.Migrations
                         .IsRequired();
 
                     b.Navigation("Employee");
->>>>>>> 842360a0c99cd394c22b1dd921d44dbfaf575487
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -610,13 +425,6 @@ namespace BookingSystem.Web.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("BookingSystem.Web.Data.Business", b =>
-                {
-                    b.Navigation("Employees");
-
-                    b.Navigation("Services");
                 });
 
             modelBuilder.Entity("BookingSystem.Web.Data.Employee", b =>

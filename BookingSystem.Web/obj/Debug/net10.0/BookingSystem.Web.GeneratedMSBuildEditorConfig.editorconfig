@@ -1,22 +1,14 @@
 is_global = true
 build_property.TargetFramework = net10.0
-build_property.TargetFramework = net10.0
-build_property.TargetPlatformMinVersion = 
-build_property.TargetPlatformMinVersion = 
-build_property.UsingMicrosoftNETSdkWeb = true
-build_property.UsingMicrosoftNETSdkWeb = true
-build_property.ProjectTypeGuids = 
-build_property.ProjectTypeGuids = 
-build_property.InvariantGlobalization = 
-build_property.InvariantGlobalization = 
-build_property.PlatformNeutralAssembly = 
-build_property.PlatformNeutralAssembly = 
-build_property.EnforceExtendedAnalyzerRules = 
-build_property.EnforceExtendedAnalyzerRules = 
-build_property._SupportedPlatformList = Linux,macOS,Windows
-build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.TargetFrameworkIdentifier = .NETCoreApp
 build_property.TargetFrameworkVersion = v10.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = BookingSystem.Web
 build_property.RootNamespace = BookingSystem.Web
 build_property.ProjectDir = C:\Users\franu\Desktop\BYU\BYU-I\2026\block-2-2026\.Net-dev\project-team14\.NET-project-team14\BookingSystem.Web\
@@ -29,6 +21,10 @@ build_property.MSBuildProjectDirectory = C:\Users\franu\Desktop\BYU\BYU-I\2026\b
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 10.0
 build_property.EnableCodeStyleSeverity = 
+
+[C:/Users/franu/Desktop/BYU/BYU-I/2026/block-2-2026/.Net-dev/project-team14/.NET-project-team14/BookingSystem.Web/App.razor]
+build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/franu/Desktop/BYU/BYU-I/2026/block-2-2026/.Net-dev/project-team14/.NET-project-team14/BookingSystem.Web/Components/Account/Pages/AccessDenied.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBY2NvdW50XFBhZ2VzXEFjY2Vzc0RlbmllZC5yYXpvcg==
@@ -210,6 +206,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xDb3VudGVyLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/franu/Desktop/BYU/BYU-I/2026/block-2-2026/.Net-dev/project-team14/.NET-project-team14/BookingSystem.Web/Components/Pages/Employees.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFbXBsb3llZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/franu/Desktop/BYU/BYU-I/2026/block-2-2026/.Net-dev/project-team14/.NET-project-team14/BookingSystem.Web/Components/Pages/EntrepreneurDashboard.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFbnRyZXByZW5ldXJEYXNoYm9hcmQucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
@@ -234,6 +234,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xXZWF0aGVyLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/franu/Desktop/BYU/BYU-I/2026/block-2-2026/.Net-dev/project-team14/.NET-project-team14/BookingSystem.Web/Components/Pages/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xfSW1wb3J0cy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/franu/Desktop/BYU/BYU-I/2026/block-2-2026/.Net-dev/project-team14/.NET-project-team14/BookingSystem.Web/Components/Routes.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xSb3V0ZXMucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = 
@@ -253,3 +257,7 @@ build_metadata.AdditionalFiles.CssScope = b-c8rh1rgb99
 [C:/Users/franu/Desktop/BYU/BYU-I/2026/block-2-2026/.Net-dev/project-team14/.NET-project-team14/BookingSystem.Web/Components/Layout/ReconnectModal.razor]
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcUmVjb25uZWN0TW9kYWwucmF6b3I=
 build_metadata.AdditionalFiles.CssScope = b-68a3826fa6
+
+[C:/Users/franu/Desktop/BYU/BYU-I/2026/block-2-2026/.Net-dev/project-team14/.NET-project-team14/BookingSystem.Web/Pages/_Host.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcX0hvc3QuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
