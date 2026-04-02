@@ -2,8 +2,41 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Entrepreneur")]
 
-<h3>Panel de Emprendedor</h3>
+<PageTitle>Entrepreneur Dashboard</PageTitle>
 
-<p>Gestiona tu perfil y servicios disponibles.</p>
+<h3>Entrepreneur Dashboard</h3>
 
-<!-- Aquí luego agregaremos lista de servicios, CRUD, y calendario de disponibilidad -->
+<p class="text-muted">Manage your business profile, services, and employees.</p>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">Step 1. Business Profile</h5>
+        <p class="card-text">Create and edit your business profile information.</p>
+        <button class="btn btn-primary" disabled>Create Profile (next step)</button>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">Step 2. Services</h5>
+        <p class="card-text">List associated services and manage them with CRUD actions.</p>
+        <button class="btn btn-outline-primary" disabled>Manage Services (upcoming)</button>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">Step 3. Employee Profiles</h5>
+        <p class="card-text">Add and manage employee profiles linked to your business.</p>
+        <button class="btn btn-outline-primary" disabled>Manage Employees (upcoming)</button>
+    </div>
+</div>
+
+<h5>Checklist</h5>
+<ul>
+    <li>Create a business profile</li>
+    <li>Edit business information</li>
+    <li>List associated services</li>
+    <li>CRUD for services</li>
+    <li>Employee profile management</li>
+</ul>
