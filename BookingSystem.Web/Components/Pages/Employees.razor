@@ -1,0 +1,275 @@
+@page "/admin/employees"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using BookingSystem.Web.Data
+@inject ApplicationDbContext DbContext
+@attribute [Authorize(Roles = "SuperAdmin")]
+
+
+<AuthorizeView Roles="SuperAdmin">
+    <Authorized Context="auth">
+        <PageTitle>Employees</PageTitle>
+        <h3>Employees</h3>
+
+        @if (employees == null)
+        {
+            <p><em>Loading...</em></p>
+        }
+        else
+        {
+            <button class="btn btn-primary mb-3" @onclick="ShowAddEmployee">Add Employee</button>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var emp in employees)
+                    {
+                        <tr>
+                            <td>@emp.Name</td>
+                            <td>@emp.Phone</td>
+                            <td>
+                                <button class="btn btn-sm btn-info me-2" @onclick="() => EditEmployee(emp)">Edit</button>
+                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteEmployee(emp.Id)">Delete</button>
+                                <button class="btn btn-sm btn-secondary ms-2"
+                                        @onclick="() => ShowSchedules(emp)">Schedules</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+        @if (showEmployeeForm)
+        {
+            <EditForm Model="employeeModel" OnValidSubmit="SaveEmployee">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <div class="mb-2">
+                    <label>Name:</label>
+                    <InputText class="form-control" @bind-Value="employeeModel.Name" />
+                </div>
+                <div class="mb-2">
+                    <label>Phone:</label>
+                    <InputText class="form-control" @bind-Value="employeeModel.Phone" />
+                </div>
+                <button class="btn btn-success me-2" type="submit">Save</button>
+                <button class="btn btn-secondary" type="button" @onclick="CancelEmployee">Cancel</button>
+            </EditForm>
+        }
+
+        @if (showSchedules && selectedEmployee != null)
+        {
+            <h4>Schedules for @selectedEmployee.Name</h4>
+            @if (!string.IsNullOrWhiteSpace(scheduleValidationError))
+            {
+                <div class="alert alert-warning">@scheduleValidationError</div>
+            }
+            <button class="btn btn-sm btn-primary mb-2" @onclick="ShowAddSchedule">Add Schedule</button>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var sched in schedules)
+                    {
+                        <tr>
+                            <td>@sched.DayOfWeek</td>
+                            <td>@sched.StartTime</td>
+                            <td>@sched.EndTime</td>
+                            <td>
+                                <button class="btn btn-sm btn-danger" @onclick="() => DeleteSchedule(sched.Id)">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            @if (showScheduleForm)
+            {
+                <EditForm Model="scheduleModel" OnValidSubmit="SaveSchedule">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+                    <div class="mb-2">
+                        <label>Day of Week:</label>
+                        <InputSelect class="form-control" @bind-Value="scheduleModel.DayOfWeek">
+                            @foreach (var day in Enum.GetValues<DayOfWeek>())
+                            {
+                                <option value="@day">@day</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="mb-2">
+                        <label>Start Time:</label>
+                        <InputText class="form-control" type="time" @bind-value="startTimeString" />
+                    </div>
+                    <div class="mb-2">
+                        <label>End Time:</label>
+                        <InputText class="form-control" type="time" @bind-value="endTimeString" />
+                    </div>
+                    <button class="btn btn-success me-2" type="submit">Save</button>
+                    <button class="btn btn-secondary" type="button" @onclick="CancelSchedule">Cancel</button>
+                </EditForm>
+            }
+            <button class="btn btn-secondary mt-2" @onclick="CloseSchedules">Close</button>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <div class="alert alert-danger mt-4">No tienes permisos para ver esta página.</div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private List<Employee>? employees;
+    private Employee employeeModel = new();
+    private bool showEmployeeForm = false;
+    private bool isEdit = false;
+
+    private List<WorkSchedule> schedules = new();
+    private WorkSchedule scheduleModel = new();
+    private string startTimeString = "";
+    private string endTimeString = "";
+    private bool showSchedules = false;
+    private bool showScheduleForm = false;
+    private Employee? selectedEmployee;
+    private string? scheduleValidationError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEmployees();
+    }
+
+    private async Task LoadEmployees()
+    {
+        employees = await DbContext.Employees
+            .OrderBy(e => e.Name)
+            .ToListAsync();
+    }
+
+    private void ShowAddEmployee()
+    {
+        employeeModel = new Employee();
+        showEmployeeForm = true;
+        isEdit = false;
+    }
+
+    private void EditEmployee(Employee emp)
+    {
+        employeeModel = new Employee { Id = emp.Id, Name = emp.Name, Phone = emp.Phone };
+        showEmployeeForm = true;
+        isEdit = true;
+    }
+
+    private async Task SaveEmployee()
+    {
+        if (isEdit)
+        {
+            var emp = await DbContext.Employees.FindAsync(employeeModel.Id);
+            if (emp != null)
+            {
+                emp.Name = employeeModel.Name;
+                emp.Phone = employeeModel.Phone;
+            }
+        }
+        else
+        {
+            DbContext.Employees.Add(employeeModel);
+        }
+        await DbContext.SaveChangesAsync();
+        showEmployeeForm = false;
+        await LoadEmployees();
+    }
+
+    private void CancelEmployee()
+    {
+        showEmployeeForm = false;
+    }
+
+    private async Task DeleteEmployee(int id)
+    {
+        var emp = await DbContext.Employees.FindAsync(id);
+        if (emp != null)
+        {
+            DbContext.Employees.Remove(emp);
+            await DbContext.SaveChangesAsync();
+            await LoadEmployees();
+        }
+    }
+
+    private async Task ShowSchedules(Employee emp)
+    {
+        selectedEmployee = emp;
+        schedules = await DbContext.WorkSchedules.Where(ws => ws.EmployeeId == emp.Id).ToListAsync<WorkSchedule>();
+        showSchedules = true;
+        showScheduleForm = false;
+        scheduleValidationError = null;
+    }
+
+    private void ShowAddSchedule()
+    {
+        scheduleModel = new WorkSchedule { EmployeeId = selectedEmployee!.Id };
+        startTimeString = "08:00";
+        endTimeString = "17:00";
+        showScheduleForm = true;
+        scheduleValidationError = null;
+    }
+
+    private async Task SaveSchedule()
+    {
+        if (TimeSpan.TryParse(startTimeString, out var start) && TimeSpan.TryParse(endTimeString, out var end))
+        {
+            if (end <= start)
+            {
+                scheduleValidationError = "End time must be later than start time.";
+                return;
+            }
+
+            scheduleModel.StartTime = start;
+            scheduleModel.EndTime = end;
+            DbContext.WorkSchedules.Add(scheduleModel);
+            await DbContext.SaveChangesAsync();
+            showScheduleForm = false;
+            scheduleValidationError = null;
+            schedules = await DbContext.WorkSchedules.Where(ws => ws.EmployeeId ==
+selectedEmployee!.Id).ToListAsync<WorkSchedule>();
+        }
+        else
+        {
+            scheduleValidationError = "Please enter valid start and end times.";
+        }
+    }
+
+    private void CancelSchedule()
+    {
+        showScheduleForm = false;
+        scheduleValidationError = null;
+    }
+
+    private async Task DeleteSchedule(int id)
+    {
+        var sched = await DbContext.WorkSchedules.FindAsync(id);
+        if (sched != null)
+        {
+            DbContext.WorkSchedules.Remove(sched);
+            await DbContext.SaveChangesAsync();
+            schedules = await DbContext.WorkSchedules.Where(ws => ws.EmployeeId ==
+selectedEmployee!.Id).ToListAsync<WorkSchedule>();
+        }
+    }
+
+    private void CloseSchedules()
+    {
+        showSchedules = false;
+        selectedEmployee = null;
+        schedules.Clear();
+        scheduleValidationError = null;
+    }
+}
