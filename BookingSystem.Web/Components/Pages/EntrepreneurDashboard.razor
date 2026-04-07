@@ -51,6 +51,20 @@
                     <InputText class="form-control" @bind-Value="businessModel.Address" />
                 </div>
 
+
+                <div class="mb-3">
+                    <label>Category</label>
+
+                    <InputSelect class="form-control" @bind-Value="businessModel.BusinessCategoryId">
+                        <option value="0">-- Select a category --</option>
+
+                        @foreach (var cat in categories)
+                        {
+                            <option value="@cat.Id">@cat.Name</option>
+                        }
+                    </InputSelect>
+                </div>
+
                 <button class="btn btn-primary" type="submit">@(hasBusiness ? "Update Profile" : "Create Profile")</button>
             </EditForm>
 
@@ -131,8 +145,10 @@
                                 <td>@service.DurationMinutes min</td>
                                 <td>@(service.IsActive ? "Active" : "Inactive")</td>
                                 <td>
-                                    <button class="btn btn-sm btn-info me-2" type="button" @onclick="() => StartEditService(service)">Edit</button>
-                                    <button class="btn btn-sm btn-danger" type="button" @onclick="() => DeleteService(service.Id)">Delete</button>
+                                    <button class="btn btn-sm btn-info me-2" type="button"
+                                            @onclick="() => StartEditService(service)">Edit</button>
+                                    <button class="btn btn-sm btn-danger" type="button"
+                                            @onclick="() => DeleteService(service.Id)">Delete</button>
                                 </td>
                             </tr>
                         }
@@ -220,11 +236,15 @@
     private string statusMessage = string.Empty;
     private string serviceStatusMessage = string.Empty;
 
+    //category management
+    private List<BusinessCategory> categories = new();
+
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = await UserManager.GetUserAsync(authState.User);
 
+        
         if (user == null)
         {
             statusMessage = "Unable to load authenticated user.";
@@ -253,10 +273,16 @@
         }
 
         isLoading = false;
+        categories = await DbContext.BusinessCategories.ToListAsync();
     }
 
     private async Task SaveBusiness()
     {
+        if (businessModel.BusinessCategoryId == 0)
+        {
+            statusMessage = "Please select a category.";
+            return;
+        }
         if (string.IsNullOrEmpty(currentUserId))
         {
             statusMessage = "User context is not available.";
