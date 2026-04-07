@@ -1,4 +1,5 @@
-﻿@page "/"
+﻿
+@page "/"
 @rendermode InteractiveServer
 
 @using Microsoft.EntityFrameworkCore
@@ -28,21 +29,31 @@ else
         {
             <div class="col-md-4 mb-4">
                 <div class="card h-100 shadow-sm">
+
+                    <!-- IMAGE -->
+                    <img src="/images/default-business.png"
+                         class="card-img-top"
+                         style="height:180px; object-fit:cover;" />
+
                     <div class="card-body">
                         <h5 class="card-title">@business.Name</h5>
-                        <p class="card-text">@business.Description</p>
 
-                        <p>
-                            <strong>Category:</strong>
-                            @business.BusinessCategory?.Name
+                        <p class="text-muted mb-2">
+                            Category: @business.BusinessCategory?.Name
+                        </p>
+
+                        <p class="card-text">
+                            @business.Description
                         </p>
                     </div>
 
-                    <div class="card-footer text-center">
-                        <button class="btn btn-primary" @onclick="() => GoToBusiness(business.Id)">
+                    <div class="card-footer text-center bg-white border-0">
+                        <button class="btn btn-outline-primary w-100"
+                                @onclick="() => GoToBusiness(business.Id)">
                             See Services
                         </button>
                     </div>
+
                 </div>
             </div>
         }
@@ -50,7 +61,7 @@ else
 }
 
 @code {
-    private List<Business> businesses = new();
+    private List<Business>? businesses;
 
     protected override async Task OnInitializedAsync()
     {
@@ -64,3 +75,4 @@ else
         Nav.NavigateTo($"/business/{businessId}");
     }
 }
+
