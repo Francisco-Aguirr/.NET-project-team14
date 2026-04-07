@@ -4,7 +4,7 @@
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">BookingSystem.Web</a>
+        <a class="navbar-brand" href="">Booking System</a>
     </div>
 </div>
 
@@ -17,10 +17,6 @@
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
             </NavLink>
         </div>
-
-        
-
-       
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="auth">
@@ -52,7 +48,7 @@
                     </div>
                 </AuthorizeView>
 
-                <AuthorizeView Roles="User,Entrepreneur,SuperAdmin" Context="userContext">
+                <AuthorizeView Roles="User" Context="userContext">
                     <div class="nav-item px-3">
                         <NavLink class="nav-link" href="/dashboard">
                             <span class="bi bi-calendar-check-fill-nav-menu"></span> My Appointments
