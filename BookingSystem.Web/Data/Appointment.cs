@@ -3,6 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BookingSystem.Web.Data
 {
+    public enum AppointmentStatus
+    {
+        Confirmed,
+        Cancelled,
+        Completed
+    }
+
     public class Appointment
     {
         [Key]
@@ -30,5 +37,9 @@ namespace BookingSystem.Web.Data
         public DateTime AppointmentEnd { get; set; }
 
         public bool IsCancelled { get; set; }
+
+        public AppointmentStatus Status { get; set; } = AppointmentStatus.Confirmed;
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

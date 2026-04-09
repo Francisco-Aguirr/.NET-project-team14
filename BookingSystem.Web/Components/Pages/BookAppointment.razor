@@ -235,7 +235,9 @@
             ClientUserId = clientUserId,
             AppointmentStart = selectedSlot.Start,
             AppointmentEnd = selectedSlot.End,
-            IsCancelled = false
+            IsCancelled = false,
+            Status = AppointmentStatus.Confirmed,
+            CreatedAt = DateTime.UtcNow
         };
 
         DbContext.Appointments.Add(appointment);
