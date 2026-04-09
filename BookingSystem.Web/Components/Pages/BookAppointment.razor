@@ -1,0 +1,252 @@
+@page "/book-appointment"
+@page "/book-appointment/{BusinessId:int}"
+@rendermode InteractiveServer
+
+@using BookingSystem.Web.Data
+@using BookingSystem.Web.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.EntityFrameworkCore
+@using System.Security.Claims
+
+@inject ApplicationDbContext DbContext
+@inject AvailabilityService AvailabilityService
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Book Appointment</PageTitle>
+
+<h3>Book an Appointment</h3>
+
+<p class="text-muted">Choose a service, pick a date, and select one of the available time slots.</p>
+
+@if (!string.IsNullOrWhiteSpace(pageMessage))
+{
+    <div class="alert alert-warning">@pageMessage</div>
+}
+
+<div class="card p-3 mb-3">
+    <div class="mb-3">
+        <label class="form-label">Service</label>
+        <select class="form-select" @onchange="OnServiceChanged" disabled="@isLoadingServices">
+            <option value="">-- Select a service --</option>
+            @foreach (var service in services)
+            {
+                <option value="@service.Id" selected="@(selectedServiceId == service.Id)">@service.BusinessName -
+                    @service.ServiceName (@service.DurationMinutes min)</option>
+                }
+            </select>
+        </div>
+
+        @if (selectedServiceId.HasValue)
+        {
+            <div class="mb-3">
+                <label class="form-label">Date</label>
+                <InputDate class="form-control" @bind-Value="selectedDate" />
+            </div>
+
+            <button class="btn btn-primary" @onclick="LoadAvailabilityAsync" disabled="@isLoadingSlots">Check
+                availability</button>
+            }
+        </div>
+
+        @if (selectedServiceId.HasValue)
+        {
+            @if (isLoadingSlots)
+            {
+                <p><em>Calculating available slots...</em></p>
+            }
+            else if (availableSlots.Count == 0)
+            {
+                <div class="alert alert-info">No available slots for the selected date.</div>
+            }
+            else
+            {
+                <h5>Available Time Slots</h5>
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var slot in availableSlots)
+                    {
+                        <button type="button" class="btn @(selectedSlot?.Start == slot.Start ? "btn-success" : "btn-outline-primary")"
+                                @onclick="() => SelectSlot(slot)">
+                            @slot.Start.ToString("hh:mm tt")
+                        </button>
+                    }
+                </div>
+            }
+        }
+
+        @if (selectedSlot is not null)
+        {
+            <div class="alert alert-success mt-3">
+                Selected slot: @selectedSlot.Start.ToString("dddd, MMM dd yyyy hh:mm tt")
+            </div>
+
+            <button class="btn btn-success" @onclick="BookSelectedSlotAsync" disabled="@isBooking">
+                @(isBooking ? "Booking..." : "Confirm Appointment")
+            </button>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(bookingMessage))
+        {
+            <div class="alert @(bookingSucceeded ? "alert-success" : "alert-danger") mt-3">
+                @bookingMessage
+            </div>
+        }
+
+@code {
+    [Parameter]
+    public int? BusinessId { get; set; }
+
+    private readonly List<ServiceOption> services = new();
+    private readonly List<AvailabilitySlot> availableSlots = new();
+
+    private int? selectedServiceId;
+    private DateTime selectedDate = DateTime.Today;
+    private AvailabilitySlot? selectedSlot;
+    private bool isLoadingServices;
+    private bool isLoadingSlots;
+    private bool isBooking;
+    private bool bookingSucceeded;
+    private string? pageMessage;
+    private string? bookingMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadServicesAsync();
+    }
+
+    private async Task LoadServicesAsync()
+    {
+        isLoadingServices = true;
+        pageMessage = null;
+
+        var query = DbContext.BusinessServices
+            .AsNoTracking()
+            .Include(s => s.Business)
+            .Where(s => s.IsActive);
+
+        if (BusinessId.HasValue)
+        {
+            query = query.Where(s => s.BusinessId == BusinessId.Value);
+        }
+
+        var serviceResults = await query
+            .OrderBy(s => s.Business!.Name)
+            .ThenBy(s => s.Name)
+            .Select(s => new ServiceOption(
+                s.Id,
+                s.Name,
+                s.DurationMinutes,
+                s.Business!.Name))
+            .ToListAsync();
+
+        services.Clear();
+        services.AddRange(serviceResults);
+
+        if (services.Count == 0)
+        {
+            pageMessage = "No active services are available right now.";
+        }
+
+        isLoadingServices = false;
+    }
+
+    private async Task OnServiceChanged(ChangeEventArgs args)
+    {
+        selectedSlot = null;
+        availableSlots.Clear();
+        bookingMessage = null;
+
+        if (int.TryParse(args.Value?.ToString(), out var parsedServiceId))
+        {
+            selectedServiceId = parsedServiceId;
+            await LoadAvailabilityAsync();
+            return;
+        }
+
+        selectedServiceId = null;
+    }
+
+    private async Task LoadAvailabilityAsync()
+    {
+        if (!selectedServiceId.HasValue)
+        {
+            availableSlots.Clear();
+            return;
+        }
+
+        isLoadingSlots = true;
+        selectedSlot = null;
+        bookingMessage = null;
+
+        var slots = await AvailabilityService.GetAvailableSlotsAsync(selectedServiceId.Value, selectedDate);
+
+        availableSlots.Clear();
+        availableSlots.AddRange(slots);
+
+        isLoadingSlots = false;
+    }
+
+    private void SelectSlot(AvailabilitySlot slot)
+    {
+        selectedSlot = slot;
+        bookingMessage = null;
+    }
+
+    private async Task BookSelectedSlotAsync()
+    {
+        if (!selectedServiceId.HasValue || selectedSlot is null)
+        {
+            bookingSucceeded = false;
+            bookingMessage = "Select a service and available slot first.";
+            return;
+        }
+
+        isBooking = true;
+
+        // Double-check to avoid race conditions when two clients try the same slot.
+        var slotStillAvailable = await AvailabilityService.GetAvailableSlotsAsync(selectedServiceId.Value, selectedDate);
+        var isStillAvailable = slotStillAvailable.Any(s => s.Start == selectedSlot.Start
+                                                        && s.End == selectedSlot.End
+                                                        && s.EmployeeId == selectedSlot.EmployeeId);
+
+        if (!isStillAvailable)
+        {
+            bookingSucceeded = false;
+            bookingMessage = "That slot is no longer available. Please select another one.";
+            isBooking = false;
+            await LoadAvailabilityAsync();
+            return;
+        }
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var clientUserId = authState.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrWhiteSpace(clientUserId))
+        {
+            bookingSucceeded = false;
+            bookingMessage = "Please log in to confirm your appointment.";
+            isBooking = false;
+            return;
+        }
+
+        var appointment = new Appointment
+        {
+            BusinessServiceId = selectedServiceId.Value,
+            EmployeeId = selectedSlot.EmployeeId,
+            ClientUserId = clientUserId,
+            AppointmentStart = selectedSlot.Start,
+            AppointmentEnd = selectedSlot.End,
+            IsCancelled = false
+        };
+
+        DbContext.Appointments.Add(appointment);
+        await DbContext.SaveChangesAsync();
+
+        bookingSucceeded = true;
+        bookingMessage = $"Appointment booked for {selectedSlot.Start:dddd, MMM dd yyyy hh:mm tt}.";
+        isBooking = false;
+
+        await LoadAvailabilityAsync();
+    }
+
+    private record ServiceOption(int Id, string ServiceName, int DurationMinutes, string BusinessName);
+}

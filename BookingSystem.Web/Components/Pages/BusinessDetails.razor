@@ -30,6 +30,12 @@ else
 
             <h4>Services</h4>
 
+            <div class="mb-3">
+                <button class="btn btn-primary" @onclick="GoToBooking">
+                    Book Appointment
+                </button>
+            </div>
+
             @if (services == null)
             {
                 <p>Loading services...</p>
@@ -79,5 +85,10 @@ else
         services = await DbContext.BusinessServices
             .Where(s => s.BusinessId == Id)
             .ToListAsync();
+    }
+
+    private void GoToBooking()
+    {
+        Nav.NavigateTo($"/book-appointment/{Id}");
     }
 }

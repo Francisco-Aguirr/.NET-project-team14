@@ -16,6 +16,7 @@ namespace BookingSystem.Web.Data
         public DbSet<EntrepreneurRequest> EntrepreneurRequests => Set<EntrepreneurRequest>();
         public DbSet<Employee> Employees => Set<Employee>();
         public DbSet<WorkSchedule> WorkSchedules => Set<WorkSchedule>();
+        public DbSet<Appointment> Appointments => Set<Appointment>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -54,6 +55,24 @@ namespace BookingSystem.Web.Data
 
             modelBuilder.Entity<BusinessService>()
                 .HasIndex(s => s.BusinessId);
+
+            modelBuilder.Entity<Appointment>()
+                .HasOne(a => a.BusinessService)
+                .WithMany()
+                .HasForeignKey(a => a.BusinessServiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Appointment>()
+                .HasOne(a => a.Employee)
+                .WithMany()
+                .HasForeignKey(a => a.EmployeeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Appointment>()
+                .HasIndex(a => new { a.EmployeeId, a.AppointmentStart, a.AppointmentEnd });
+
+            modelBuilder.Entity<Appointment>()
+                .HasIndex(a => a.BusinessServiceId);
         }
     }
 }
