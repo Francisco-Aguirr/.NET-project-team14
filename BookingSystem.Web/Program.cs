@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using BookingSystem.Web.Components;
 using BookingSystem.Web.Components.Account;
 using BookingSystem.Web.Data;
+using BookingSystem.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,11 +27,12 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+builder.Services.AddScoped<AvailabilityService>();
 
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
     {
-       options.SignIn.RequireConfirmedAccount = false;
-       options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
+        options.SignIn.RequireConfirmedAccount = false;
+        options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
     })
     .AddRoles<IdentityRole>() // aqui definimos el rol de cada usuario
     .AddEntityFrameworkStores<ApplicationDbContext>()
