@@ -1,0 +1,355 @@
+@page "/entrepreneur/appointments"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using BookingSystem.Web.Data
+@attribute [Authorize(Roles = "Entrepreneur")]
+@inject AuthenticationStateProvider AuthStateProvider
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationDbContext DbContext
+
+<PageTitle>Entrepreneur Appointments</PageTitle>
+
+<h3>Appointment Panel</h3>
+<p class="text-muted">View and manage your upcoming appointments.</p>
+
+@if (!string.IsNullOrWhiteSpace(pageMessage))
+{
+    <div class="alert @(isErrorMessage ? "alert-danger" : "alert-success")">@pageMessage</div>
+}
+
+@if (isLoading)
+{
+    <p><em>Loading appointments...</em></p>
+}
+else
+{
+    <div class="row g-3 align-items-end mb-3">
+        <div class="col-md-4">
+            <label class="form-label">Filter by status</label>
+            <InputSelect class="form-select" @bind-Value="selectedStatusFilter">
+                @foreach (var option in statusFilterOptions)
+                {
+                    <option value="@option">@option</option>
+                }
+            </InputSelect>
+        </div>
+    </div>
+
+    if (FilteredAppointments.Count == 0)
+    {
+        <div class="alert alert-info">No upcoming appointments found for the selected status.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Client</th>
+                        <th>Status</th>
+                        <th>Employee</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var appt in FilteredAppointments)
+                    {
+                        <tr>
+                            <td>@appt.Start.ToString("yyyy-MM-dd")</td>
+                            <td>@AppointmentTime(appt)</td>
+                            <td>@appt.ClientName</td>
+                            <td>@appt.Status.ToString()</td>
+                            <td>@appt.EmployeeName</td>
+                            <td>
+                                <button class="btn btn-sm btn-success me-2"
+                                        disabled="@(appt.Status == AppointmentStatus.Confirmed || isProcessing)"
+                                        @onclick="() => ConfirmAppointment(appt.Id)">
+                                    Confirm
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary me-2" disabled="@isProcessing"
+                                        @onclick="() => StartReschedule(appt)">
+                                    Reschedule
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger"
+                                        disabled="@(appt.Status == AppointmentStatus.Cancelled || isProcessing)"
+                                        @onclick="() => CancelAppointment(appt.Id)">
+                                    Cancel
+                                </button>
+                            </td>
+                        </tr>
+
+                        @if (reschedulingAppointmentId == appt.Id)
+                        {
+                            <tr>
+                                <td colspan="6">
+                                    <div class="border rounded p-3 bg-light">
+                                        <div class="row g-2 align-items-end">
+                                            <div class="col-md-4">
+                                                <label class="form-label">New start date and time</label>
+                                                <input class="form-control" type="datetime-local" value="@rescheduleStartInput"
+                                                       @onchange="OnRescheduleInputChanged" />
+                                            </div>
+                                            <div class="col-md-8">
+                                                <button class="btn btn-primary me-2" disabled="@isProcessing"
+                                                        @onclick="() => SaveReschedule(appt)">Save</button>
+                                                <button class="btn btn-secondary" disabled="@isProcessing"
+                                                        @onclick="CancelReschedule">Close</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+@code {
+    private readonly List<EntrepreneurAppointmentViewModel> appointments = new();
+    private readonly List<string> statusFilterOptions = new() { "All", "Pending", "Confirmed", "Cancelled", "Completed" };
+
+    private string selectedStatusFilter = "All";
+    private string pageMessage = string.Empty;
+    private bool isErrorMessage;
+    private bool isLoading = true;
+    private bool isProcessing;
+
+    private int? reschedulingAppointmentId;
+    private string? rescheduleStartInput;
+
+    private List<EntrepreneurAppointmentViewModel> FilteredAppointments => appointments
+        .Where(a => selectedStatusFilter == "All" || a.Status.ToString().Equals(selectedStatusFilter,
+StringComparison.OrdinalIgnoreCase))
+        .OrderBy(a => a.Start)
+        .ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAppointmentsAsync();
+    }
+
+    private static string AppointmentTime(EntrepreneurAppointmentViewModel appointment)
+    {
+        return $"{appointment.Start:hh:mm tt} - {appointment.End:hh:mm tt}";
+    }
+
+    private async Task LoadAppointmentsAsync()
+    {
+        isLoading = true;
+        appointments.Clear();
+
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = await UserManager.GetUserAsync(authState.User);
+
+        if (user == null)
+        {
+            SetMessage(true, "Unable to load authenticated entrepreneur.");
+            isLoading = false;
+            return;
+        }
+
+        var businessId = await DbContext.Businesses
+            .Where(b => b.UserId == user.Id)
+            .Select(b => (int?)b.Id)
+            .FirstOrDefaultAsync();
+
+        if (businessId is null)
+        {
+            SetMessage(true, "No business profile found for this account.");
+            isLoading = false;
+            return;
+        }
+
+        // Explicitly get service IDs for this business (more reliable than nav-property WHERE)
+        var serviceIds = await DbContext.BusinessServices
+            .Where(s => s.BusinessId == businessId)
+            .Select(s => s.Id)
+            .ToListAsync();
+
+        var dbAppointments = await DbContext.Appointments
+            .AsNoTracking()
+            .Include(a => a.Employee)
+            .Include(a => a.BusinessService)
+            .Where(a => serviceIds.Contains(a.BusinessServiceId))
+            .OrderBy(a => a.AppointmentStart)
+            .ToListAsync();
+
+        var clientIds = dbAppointments
+            .Where(a => !string.IsNullOrWhiteSpace(a.ClientUserId))
+            .Select(a => a.ClientUserId!)
+            .Distinct()
+            .ToList();
+
+        var clientNameById = await DbContext.Users
+            .Where(u => clientIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => string.IsNullOrWhiteSpace(u.UserName) ? u.Email ?? "Unknown client" : u.UserName!);
+
+        foreach (var appt in dbAppointments)
+        {
+            var clientName = "Unknown client";
+            if (!string.IsNullOrWhiteSpace(appt.ClientUserId)
+                && clientNameById.TryGetValue(appt.ClientUserId, out var resolvedClientName))
+            {
+                clientName = resolvedClientName;
+            }
+
+            appointments.Add(new EntrepreneurAppointmentViewModel(
+                appt.Id,
+                appt.AppointmentStart,
+                appt.AppointmentEnd,
+                appt.Status,
+                appt.Employee?.Name ?? "Unknown employee",
+                clientName));
+        }
+
+        isLoading = false;
+    }
+
+    private async Task ConfirmAppointment(int appointmentId)
+    {
+        await UpdateAppointmentStatusAsync(appointmentId, AppointmentStatus.Confirmed, false, "Appointment confirmed successfully.");
+    }
+
+    private async Task CancelAppointment(int appointmentId)
+    {
+        await UpdateAppointmentStatusAsync(appointmentId, AppointmentStatus.Cancelled, true, "Appointment cancelled successfully.");
+    }
+
+    private async Task UpdateAppointmentStatusAsync(int appointmentId, AppointmentStatus targetStatus, bool markCancelled,
+string successMessage)
+    {
+        isProcessing = true;
+
+        try
+        {
+            var appointment = await DbContext.Appointments.FirstOrDefaultAsync(a => a.Id == appointmentId);
+            if (appointment == null)
+            {
+                SetMessage(true, "Appointment not found.");
+                return;
+            }
+
+            appointment.Status = targetStatus;
+            appointment.IsCancelled = markCancelled;
+            await DbContext.SaveChangesAsync();
+
+            await LoadAppointmentsAsync();
+            SetMessage(false, successMessage);
+        }
+        catch (Exception ex)
+        {
+            SetMessage(true, $"Could not update appointment: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void StartReschedule(EntrepreneurAppointmentViewModel appointment)
+    {
+        reschedulingAppointmentId = appointment.Id;
+        rescheduleStartInput = appointment.Start.ToString("yyyy-MM-ddTHH:mm");
+    }
+
+    private void CancelReschedule()
+    {
+        reschedulingAppointmentId = null;
+        rescheduleStartInput = null;
+    }
+
+    private void OnRescheduleInputChanged(ChangeEventArgs args)
+    {
+        rescheduleStartInput = args.Value?.ToString();
+    }
+
+    private async Task SaveReschedule(EntrepreneurAppointmentViewModel appointmentVm)
+    {
+        if (reschedulingAppointmentId is null || reschedulingAppointmentId != appointmentVm.Id)
+        {
+            SetMessage(true, "No appointment selected for rescheduling.");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(rescheduleStartInput) || !DateTime.TryParse(rescheduleStartInput, out var newStartLocal))
+        {
+            SetMessage(true, "Please select a valid new date/time.");
+            return;
+        }
+
+        var duration = appointmentVm.End - appointmentVm.Start;
+        var newStart = newStartLocal;
+        var newEnd = newStart.Add(duration);
+
+        if (newStart <= DateTime.Now)
+        {
+            SetMessage(true, "The new appointment time must be in the future.");
+            return;
+        }
+
+        isProcessing = true;
+
+        try
+        {
+            var appointment = await DbContext.Appointments.FirstOrDefaultAsync(a => a.Id == appointmentVm.Id);
+            if (appointment == null)
+            {
+                SetMessage(true, "Appointment not found.");
+                return;
+            }
+
+            var hasOverlap = await DbContext.Appointments
+                .AnyAsync(a => a.Id != appointment.Id
+                               && a.EmployeeId == appointment.EmployeeId
+                               && a.Status != AppointmentStatus.Cancelled
+                               && newStart < a.AppointmentEnd
+                               && newEnd > a.AppointmentStart);
+
+            if (hasOverlap)
+            {
+                SetMessage(true, "The selected employee already has another appointment in that time range.");
+                return;
+            }
+
+            appointment.AppointmentStart = newStart;
+            appointment.AppointmentEnd = newEnd;
+            appointment.Status = AppointmentStatus.Pending;
+            appointment.IsCancelled = false;
+            await DbContext.SaveChangesAsync();
+
+            CancelReschedule();
+            await LoadAppointmentsAsync();
+            SetMessage(false, "Appointment rescheduled successfully. Status set to Pending.");
+        }
+        catch (Exception ex)
+        {
+            SetMessage(true, $"Could not reschedule appointment: {ex.Message}");
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void SetMessage(bool isError, string message)
+    {
+        isErrorMessage = isError;
+        pageMessage = message;
+    }
+
+    private record EntrepreneurAppointmentViewModel(
+        int Id,
+        DateTime Start,
+        DateTime End,
+        AppointmentStatus Status,
+        string EmployeeName,
+        string ClientName);
+}
