@@ -7,7 +7,8 @@ namespace BookingSystem.Web.Data
     {
         Confirmed,
         Cancelled,
-        Completed
+        Completed,
+        Pending
     }
 
     public class Appointment
